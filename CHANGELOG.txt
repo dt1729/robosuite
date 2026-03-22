@@ -1,0 +1,16 @@
+## [Unreleased]
+
+### Added
+- PiperArm: 6-DOF manipulator by AgileX Robotics
+  - MuJoCo XML model with STL meshes for all links and gripper
+  - Controller config (default_piper.json, default_piperarm.json)
+  - Registered as FixedBaseRobot
+
+- PiperOmron: PiperArm mounted on OmronMobileBase
+  - HYBRID_MOBILE_BASE controller (OSC_POSE arm, JOINT_POSITION torso, JOINT_VELOCITY base)
+  - init_qpos tuned to raise arm upright above mobile base
+  - Registered as WheeledRobot
+
+### Fixed
+- Gripper finger orientations for PiperArm (link7/link8) aligned to match piper_sim reference
+- Visual geoms (group=1) added to all Piper links so arm renders correctly in robocasa kitchen environments
