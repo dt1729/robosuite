@@ -31,6 +31,8 @@ ROBOT_CLASS_MAPPING = {
     "PandaDexRH": FixedBaseRobot,
     "PandaDexLH": FixedBaseRobot,
     "XArm7": FixedBaseRobot,
+    "PiperArm": FixedBaseRobot,
+    "PiperOmron": WheeledRobot,
 }
 
 target_type_mapping = {

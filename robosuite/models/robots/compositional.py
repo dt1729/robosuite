@@ -3,6 +3,34 @@ import numpy as np
 from robosuite.models.robots import *
 
 
+class PiperOmron(PiperArm):
+    @property
+    def default_base(self):
+        return "OmronMobileBase"
+
+    @property
+    def default_arms(self):
+        return {"right": "PiperArm"}
+
+    @property
+    def default_controller_config(self):
+        return {"right": "default_piperomron", "torso": "default_piperomron"}
+
+    @property
+    def init_qpos(self):
+        # joint limits: j1[-2.618,2.168] j2[0,3.14] j3[-2.967,0] j4[-1.745,1.745] j5[-1.22,1.22] j6[-2.09,2.09]
+        # This pose lifts the arm upright above the Omron base
+        return np.array([0.0, 1.57, -1.57, 0.0, 1.22, 0.0, 0.0, 0.0])
+
+    @property
+    def base_xpos_offset(self):
+        return {
+            "bins": (-0.6, -0.1, 0),
+            "empty": (-0.6, 0, 0),
+            "table": lambda table_length: (-0.16 - table_length / 2, 0, 0),
+        }
+
+
 class PandaOmron(Panda):
     @property
     def default_base(self):
