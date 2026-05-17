@@ -1,6 +1,9 @@
 <mujoco model="piper">
     <compiler angle="radian" />
-    <size njmax="500" nconmax="100" />
+    <size njmax="2000" nconmax="500" />
+    <extension>
+        <plugin plugin="mujoco.sensor.touch_grid"/>
+    </extension>
     <asset>
         <mesh name="base_link" file="./meshes/base_link.STL" />
         <mesh name="link1" file="./meshes/link1.STL" />
@@ -58,15 +61,22 @@
                                     <inertial pos="0 0 0" mass="0" diaginertia="0 0 0"/>
                                     <body name="link7" pos="0 0 0" quat="0.707105 0.707108 0 0">
                                         <inertial pos="0.000651232 -0.049193 0.00972259" quat="0.477798 0.572974 -0.518028 0.418398" mass="0.025" diaginertia="7.74531e-05 7.36783e-05 5.0886e-06" />
-                                        <joint name="joint7" pos="0 0 0" axis="0 0 1" type="slide" limited="true" range="0 0.035" damping="100"/>
+                                        <joint name="joint7" pos="0 0 0" axis="0 0 1" type="slide" limited="true" range="-0.2 0.2" damping="100"/>
                                         <geom type="mesh" rgba="0.792157 0.819608 0.933333 1" mesh="link7" contype="0" conaffinity="0" group="1"/>
-                                        <geom type="mesh" rgba="0.792157 0.819608 0.933333 1" mesh="link7" name="link7_col"/>
+                                        <geom type="mesh" rgba="0.792157 0.819608 0.933333 1" mesh="link7" name="link7_col" contype="3" conaffinity="3"/>
+                                        <!-- touch_grid tactile pad (left finger): 16x16 grid over 30x45mm contact face -->
+                                        <!-- quat "0 1 0 0" = Rx180 so site +Z = link7 local -Z = contact normal direction -->
+                                        <!-- outer face at local z=0 (contact surface), body extends to z=0.030 -->
+                                        <site name="tac_pad_left" type="ellipsoid" pos="0 -0.0425 0" size="0.015 0.0225 0.015" quat="0 1 0 0" rgba="0 1 0 0.3" group="4"/>
                                     </body>
                                     <body name="link8" pos="0 0 0" quat="-2.59734e-06 -2.59735e-06 -0.707108 -0.707105">
                                         <inertial pos="0.000651232 -0.049193 0.00972259" quat="0.477798 0.572974 -0.518028 0.418398" mass="0.025" diaginertia="7.74531e-05 7.36783e-05 5.0886e-06" />
-                                        <joint name="joint8" pos="0 0 0" axis="0 0 -1" type="slide" limited="true" range="-0.035 0" damping="100"/>
+                                        <joint name="joint8" pos="0 0 0" axis="0 0 -1" type="slide" limited="true" range="-0.2 0.2" damping="100"/>
                                         <geom type="mesh" rgba="0.792157 0.819608 0.933333 1" mesh="link8" contype="0" conaffinity="0" group="1"/>
-                                        <geom type="mesh" rgba="0.792157 0.819608 0.933333 1" mesh="link8" name="link8_col"/>
+                                        <geom type="mesh" rgba="0.792157 0.819608 0.933333 1" mesh="link8" name="link8_col" contype="3" conaffinity="3"/>
+                                        <!-- touch_grid tactile pad (right finger): 16x16 grid over 30x45mm contact face -->
+                                        <!-- same quat as left: Rx180 makes site +Z = link8 local -Z = contact normal direction -->
+                                        <site name="tac_pad_right" type="ellipsoid" pos="0 -0.0425 0" size="0.015 0.0225 0.015" quat="0 1 0 0" rgba="0 0 1 0.3" group="4"/>
                                     </body>
                                 </body>
                             </body>
@@ -77,6 +87,25 @@
         </body>
         </body>
     </worldbody>
+    <sensor>
+        <!-- 16x16 touch_grid tactile sensor, left finger (link7) -->
+        <!-- fov=85 captures contacts up to 85deg off-axis; needed because the site origin is
+             ~8mm laterally offset from the mesh contact face, so at shallow penetration depths
+             the contact-to-site angle can exceed 70deg. -->
+        <plugin name="touch_left" plugin="mujoco.sensor.touch_grid" objtype="site" objname="tac_pad_left">
+            <config key="size" value="16 16"/>
+            <config key="fov" value="85 85"/>
+            <config key="gamma" value="0"/>
+            <config key="nchannel" value="1"/>
+        </plugin>
+        <!-- 16x16 touch_grid tactile sensor, right finger (link8) -->
+        <plugin name="touch_right" plugin="mujoco.sensor.touch_grid" objtype="site" objname="tac_pad_right">
+            <config key="size" value="16 16"/>
+            <config key="fov" value="85 85"/>
+            <config key="gamma" value="0"/>
+            <config key="nchannel" value="1"/>
+        </plugin>
+    </sensor>
     <actuator>
         <position name="joint1" ctrllimited="true" ctrlrange="-2.618 2.618" joint="joint1" kp="10000" user="1" forcelimited="false"/>
         <position name="joint2" ctrllimited="true" ctrlrange="0 3.14158" joint="joint2" kp="2000" user="1" forcelimited="false"/>
@@ -84,7 +113,7 @@
         <position name="joint4" ctrllimited="true" ctrlrange="-1.832 1.832" joint="joint4" kp="500" user="1" forcelimited="false"/>
         <position name="joint5" ctrllimited="true" ctrlrange="-1.22 1.22" joint="joint5" kp="200" user="1" forcelimited="false"/>
         <position name="joint6" ctrllimited="true" ctrlrange="-3.14158 3.14158" joint="joint6" kp="200" user="1" forcelimited="false"/>
-        <position name="joint7" ctrllimited="true" ctrlrange="0 0.0475" joint="joint7" kp="10000" user="1" forcelimited="false" forcerange="-100 100"/>
-        <position name="joint8" ctrllimited="true" ctrlrange="-0.0475 0" joint="joint8" kp="10000" user="1" forcelimited="false" forcerange="-100 100"/>
+        <position name="joint7" ctrllimited="true" ctrlrange="-0.2 0.2" joint="joint7" kp="10000" user="1" forcelimited="false" forcerange="-100 100"/>
+        <position name="joint8" ctrllimited="true" ctrlrange="-0.2 0.2" joint="joint8" kp="10000" user="1" forcelimited="false" forcerange="-100 100"/>
     </actuator>
 </mujoco>
